@@ -1,11 +1,11 @@
 {
-  "name": "api.90s.dev",
+  "name": "quickexport",
   "version": "1.0.0",
-  "scripts": {
-    "watch": "tsc --watch"
+  "description": "",
+  "main": "index.js",
+  "exports": {
+    ".": "./out/main.js"
   },
-  "type": "module",
-  "homepage": "https://api.90s.dev/",
   "devDependencies": {
     "@babel/core": "^7.27.1",
     "@babel/plugin-transform-react-jsx": "^7.27.1",
@@ -15,7 +15,19 @@
     "immaculata": "^2.0.1",
     "typescript": "^5.8.3"
   },
-  "dependencies": {
-    "api.90s.dev": "github:sdegutis/api.90s.dev"
-  }
+  "scripts": {
+    "watch": "tsc --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sdegutis/quickexport.git"
+  },
+  "keywords": [ ],
+  "author": "Steven Degutis",
+  "license": "MIT",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/sdegutis/quickexport/issues"
+  },
+  "homepage": "https://github.com/sdegutis/quickexport#readme"
 }

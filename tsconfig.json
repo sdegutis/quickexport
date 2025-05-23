@@ -2,9 +2,9 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
-    "jsx": "react-native",
-    "rootDir": ".",
-    "noEmit": true,
+    "rootDir": "./src",
+    "outDir": "./out",
+    "declaration": true,
 
     "forceConsistentCasingInFileNames": true,
     "strict": true,

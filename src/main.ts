@@ -3,12 +3,7 @@ import { FileTree, generateFiles, Pipeline } from "immaculata"
 import { readFileSync, rmSync } from "node:fs"
 import { createRequire } from 'node:module'
 
-transform(new FileTree('src', import.meta.url), {
-  watch: process.argv[2] === 'dev',
-  jsxImport: 'https://api.90s.dev/_jsx.js'
-})
-
-function transform(tree: FileTree, opts?: { watch?: boolean, jsxImport?: string }) {
+export function transform(tree: FileTree, opts?: { watch?: boolean, jsxImport?: string }) {
   const watch = opts?.watch
   const jsxImport = opts?.jsxImport ?? '/_jsx.js'
 
