@@ -11,7 +11,7 @@
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/plugin-transform-typescript": "^7.27.1",
     "@types/babel__core": "^7.20.5",
-    "immaculata": "^2.0.1"
+    "immaculata": "^2.2.2"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",

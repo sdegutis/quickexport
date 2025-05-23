@@ -1,63 +1,71 @@
-import { transformSync, type PluginItem } from '@babel/core'
-import { FileTree, generateFiles, Pipeline } from "immaculata"
-import { readFileSync, rmSync } from "node:fs"
-import { createRequire } from 'node:module'
+import { transformSync } from '@babel/core'
+import { DevServer, FileTree, generateFiles, Pipeline } from "immaculata"
+import { transformImportsPlugin } from 'immaculata/babel.js'
+import { readFileSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
 
-export function transform(tree: FileTree, opts?: { watch?: boolean, jsxImport?: string }) {
-  const watch = opts?.watch
-  const jsxImport = opts?.jsxImport ?? '/_jsx.js'
+export function publishDir(opts: {
+  dev?: {
+    port: number,
+    generateFiles: boolean,
+  } | false,
+  projectRoot: string,
+  srcDir: string,
+  importMap: Record<string, string>
+}) {
 
-  const require = createRequire(import.meta.url)
-  const plugins: PluginItem[] = [
-    [require('@babel/plugin-transform-typescript'), { isTSX: true }],
-    [require('@babel/plugin-transform-react-jsx'), { runtime: 'automatic' }],
-    {
-      visitor: {
-        ImportDeclaration: {
-          enter(path) {
-            if (path.node.source.value === 'react/jsx-runtime') {
-              path.node.source.value = jsxImport
-            }
-            modifyPath(path.node.source)
-          },
-        },
-        ExportDeclaration: {
-          enter(path) {
-            if ('source' in path.node && path.node.source?.value) {
-              modifyPath(path.node.source)
-            }
-          }
-        },
-      }
-    }
-  ]
+  const src = new FileTree(opts.srcDir, opts.projectRoot)
 
-  transformAll()
-  if (watch) tree.watch().on('filesUpdated', transformAll)
+  const pkgjson = JSON.parse(readFileSync(join(opts.projectRoot, 'package.json'), 'utf8'))
+  const prefix = new URL(pkgjson.homepage).pathname.replace(/\/+$/, '')
 
-  function transformAll() {
-    const files = Pipeline.from(tree.files)
+  if (opts.dev) {
+    const server = new DevServer(opts.dev.port, { prefix })
+    processSite(server)
+    src.watch().on('filesUpdated', () => {
+      processSite(server)
+    })
+  }
+  else {
+    processSite()
+  }
+
+  function processSite(server?: DevServer) {
+    const files = Pipeline.from(src.files)
 
     files.with(/\.tsx?$/).do(file => {
+      const result = transform(file.path, file.text)!
       file.path = file.path.replace(/\.tsx?$/, '.js')
-      file.text = transformSync(file.text, { plugins, })?.code!
+
+      const mapPath = file.path + '.map'
+      const sourceMapPart = '\n//# sourceMappingURL=' + prefix + mapPath
+      file.text = result.code! + sourceMapPart
+
+      files.add(mapPath, JSON.stringify(result.map))
     })
 
-    rmSync('docs', { force: true, recursive: true })
-    generateFiles(files.results())
+    const map = files.results()
+
+    if (server) server.files = map
+
+    if (!opts.dev || opts.dev.generateFiles) {
+      rmSync('docs', { force: true, recursive: true })
+      generateFiles(map)
+    }
+
+    return map
   }
-}
 
-function modifyPath(source: babel.types.StringLiteral) {
-  const dep = source.value
-  if (dep.match(/^[./]/) || dep.startsWith('http')) return
+  function transform(path: string, text: string) {
+    return transformSync(text, {
+      sourceMaps: true,
+      filename: path,
+      plugins: [
+        ['@babel/plugin-transform-typescript', { isTSX: true }],
+        ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }],
+        transformImportsPlugin(opts.projectRoot, opts.importMap),
+      ],
+    })
+  }
 
-  const split = dep.indexOf('/')
-  const lib = dep.slice(0, split)
-  const imported = dep.slice(split)
-
-  const pkgjson = JSON.parse(readFileSync('node_modules/' + lib + '/package.json', 'utf8'))
-  const baseurl = new URL(imported, pkgjson.homepage)
-
-  source.value = baseurl.href
 }
