@@ -1,6 +1,6 @@
 {
   "name": "quickexport",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "exports": {
@@ -25,7 +25,7 @@
     "type": "git",
     "url": "git+https://github.com/sdegutis/quickexport.git"
   },
-  "keywords": [ ],
+  "keywords": [],
   "author": "Steven Degutis",
   "license": "MIT",
   "type": "module",
